@@ -21,9 +21,8 @@ override_dh_install:
 	install -D -m 0755 Makefile $(CURDIR)/debian/acer-battery-control-gui/etc/acer-battery-control-gui/Makefile
 
 	# Install desktop file and icons
-	install -D -m 0644 acer-battery-health.desktop $(CURDIR)/debian/acer-battery-control-gui/share/applications/acer-battery-health.desktop
-	install -D -m 0644 acer-care-center_256x256.png $(CURDIR)/debian/acer-battery-control-gui/share/icons/hicolor/256x256/apps/acer-battery-control.png
-	install -D -m 0644 acer-care-center_48x48.png $(CURDIR)/debian/acer-battery-control-gui/share/icons/hicolor/48x48/apps/acer-battery-control.png
+	install -D -m 0644 acer-battery-health.desktop $(CURDIR)/debian/acer-battery-control-gui/usr/share/applications/acer-battery-health.desktop
+	install -D -m 0644 acer-care-center.svg $(CURDIR)/debian/acer-battery-control-gui/usr/share/icons/hicolor/48x48/apps/acer-battery-control.svg
 
 override_dh_auto_build:
 	dh_auto_build
