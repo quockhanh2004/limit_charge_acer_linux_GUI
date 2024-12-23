@@ -1,5 +1,8 @@
 #!/usr/bin/make -f
 
+# Compat level 13 for debhelper-compat
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
 %:
     dh $@
 

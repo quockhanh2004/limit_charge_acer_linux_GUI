@@ -10,6 +10,8 @@ Các thiết bị hoạt động
 - Acer Enduro N3 Urban EUN314A-51W
 - Acer Nitro 5 AN515-45 (của tôi) (OS: Manjaro, kernel: linux 6.10.13-3 )
 
+![Ảnh mô tả](https://quockhanh020924.id.vn/drive/images/bad9d28100728a85ee9e89349341769cb6ec60daaccfaab7ba2c90ba2d90.png)
+
 ## Cài đặt
 
 Driver này có thể được cài đặt từ AUR:
