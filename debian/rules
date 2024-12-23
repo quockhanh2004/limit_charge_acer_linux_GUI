@@ -1,6 +1,25 @@
 #!/usr/bin/make -f
 
 %:
-	dh $@ --with python3
+    dh $@
+
 override_dh_auto_install:
-	$(MAKE) -C .. install DESTDIR=$(CURPREFIX)
+    dh_auto_install
+    # Copy files to appropriate locations
+    mkdir -p $(DESTDIR)/usr/bin
+    cp gui.py $(DESTDIR)/usr/bin/acer-battery-control-gui
+    cp backend.py $(DESTDIR)/usr/bin/acer-battery-backend
+    # Install systemd service
+    mkdir -p $(DESTDIR)/lib/systemd/system
+    cp acer-battery-control-gui.service $(DESTDIR)/lib/systemd/system/
+    # Install udev rules
+    mkdir -p $(DESTDIR)/etc/udev/rules.d
+    cp acer-battery-control.rules $(DESTDIR)/etc/udev/rules.d/
+    # Install desktop entry
+    mkdir -p $(DESTDIR)/usr/share/applications
+    cp acer-battery-health.desktop $(DESTDIR)/usr/share/applications/
+    # Install icons
+    mkdir -p $(DESTDIR)/usr/share/icons/hicolor/256x256/apps
+    cp acer-care-center_256x256.png $(DESTDIR)/usr/share/icons/hicolor/256x256/apps/
+    mkdir -p $(DESTDIR)/usr/share/icons/hicolor/48x48/apps
+    cp acer-care-center_48x48.png $(DESTDIR)/usr/share/icons/hicolor/48x48/apps/
