@@ -1,0 +1,22 @@
+post_install() {
+  echo ">> [ACER GUI] Build kernel module for current kernel: $(uname -r)"
+
+  cd /etc/acer-battery-control-gui || exit 1
+
+  make clean
+  make
+
+  if [[ -f acer-wmi-battery.ko ]]; then
+    install -Dm644 acer-wmi-battery.ko "/usr/lib/modules/$(uname -r)/extra/acer-wmi-battery.ko"
+    depmod
+    modprobe acer-wmi-battery
+    echo ">> [ACER GUI] Kernel module acer-wmi-battery loaded."
+  else
+    echo "!! [ACER GUI] Failed to build acer-wmi-battery.ko"
+  fi
+
+  echo ">> [ACER GUI] Enabling and starting services..."
+  systemctl enable acer-battery-control-gui.service
+  systemctl restart acer-battery-control-gui.service
+  systemctl restart polkit
+}

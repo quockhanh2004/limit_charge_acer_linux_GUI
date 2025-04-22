@@ -3,12 +3,13 @@ pkgver=1.1.2
 pkgrel=1
 pkgdesc="A simple GUI to control Acer battery health mode."
 arch=("any")
-url="Your project URL"
+url="https://your.project.url"
 license=("MIT")
-depends=("python3" "python-pyqt5")
-makedepends=("python")  # Only needed if you're building anything during the package creation
-provides=("acer-battery-manager")  # Optional: other names this package provides
-conflicts=("acer-battery-manager-other")  # Optional: packages that conflict with this one
+depends=("python3" "python-pyqt5" "base-devel" "linux-headers")
+makedepends=("python")
+provides=("acer-battery-manager")
+conflicts=("acer-battery-manager-other")
+install="${pkgname}.install"
 
 source=(
     "gui.py"
@@ -18,13 +19,12 @@ source=(
     "acer-wmi-battery.c"
     "Makefile"
     "acer-battery-health.desktop"
-    "acer-care-center_48x48.png"  # Add 48x48 icon
-    "acer-care-center_256x256.png" # Add 256x256 icon
+    "acer-care-center_48x48.png"
+    "acer-care-center_256x256.png"
     "LICENSE"
     "README.md"
 )
 
-# Tạo checksum mới nếu cần thiết
 md5sums=('64277873980bb22f74d5c7a9aa1a9f82'
          '5261863832ddca5be51f9e9f245a3cd0'
          'f96c4057cf13978318760a4a882af1e6'
@@ -38,29 +38,25 @@ md5sums=('64277873980bb22f74d5c7a9aa1a9f82'
          '4983ceab2e98c9affb6d2e3768d6ea49')
 
 package() {
+  # 1. Cài app GUI
   install -Dm755 gui.py "${pkgdir}/usr/bin/acer-battery-control-gui"
   install -Dm755 backend.py "${pkgdir}/etc/acer-battery-control-gui/backend.py"
   install -Dm644 acer-battery-control.rules "${pkgdir}/usr/share/polkit-1/rules.d/acer-battery-control.rules"
-  install -Dm755 acer-battery-control-gui.service "${pkgdir}/usr/lib/systemd/system/acer-battery-control-gui.service"
-  install -Dm755 acer-wmi-battery.c "${pkgdir}/etc/acer-battery-control-gui/acer-wmi-battery.c"
-  install -Dm755 Makefile "${pkgdir}/etc/acer-battery-control-gui/Makefile"
+  install -Dm644 acer-battery-control-gui.service "${pkgdir}/usr/lib/systemd/system/acer-battery-control-gui.service"
   install -Dm644 acer-battery-health.desktop "${pkgdir}/usr/share/applications/acer-battery-health.desktop"
   install -Dm644 acer-care-center_256x256.png "${pkgdir}/usr/share/icons/hicolor/256x256/apps/acer-battery-control.png"
   install -Dm644 acer-care-center_48x48.png "${pkgdir}/usr/share/icons/hicolor/48x48/apps/acer-battery-control.png"
+  install -Dm644 LICENSE "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 README.md "${pkgdir}/usr/share/doc/${pkgname}/README.md"
+
+  # 2. Build kernel module
+  _kernver=$(uname -r)
+  mkdir -p "${srcdir}/buildmod"
+  cp acer-wmi-battery.c Makefile "${srcdir}/buildmod/"
+  make -C /lib/modules/"${_kernver}"/build M="${srcdir}/buildmod" modules
+
+  # 3. Copy module đã build vào package
+  install -Dm644 "${srcdir}/buildmod/acer-wmi-battery.ko" \
+    "${pkgdir}/usr/lib/modules/${_kernver}/extra/acer-wmi-battery.ko"
 }
 
-post_install() {
-  # Cài đặt dịch vụ systemd
-  ln -s /usr/lib/systemd/system/acer-battery-control-gui.service /etc/systemd/system/
-
-  # Chạy lệnh build nếu cần
-  make -C "${pkgdir}/etc/acer-battery-control-gui"
-
-  # Nếu bạn có kernel module .ko, cài đặt và tải module
-  insmod acer-wmi-battery.ko
-
-  # Kích hoạt và khởi động dịch vụ
-  systemctl enable acer-battery-control-gui.service
-  systemctl restart acer-battery-control-gui.service
-  systemctl restart polkit
-}

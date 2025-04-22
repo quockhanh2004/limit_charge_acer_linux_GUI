@@ -1,4 +1,4 @@
 #!/bin/bash
 
 updpkgsums
-makepkg -si
+makepkg -fci
