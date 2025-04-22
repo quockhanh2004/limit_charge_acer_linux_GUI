@@ -1,0 +1,72 @@
+#!/bin/sh
+# debian/postinst for acer-battery-control-gui
+
+set -e
+
+# Tham số được truyền vào bởi dpkg
+action="$1"
+
+# Chỉ chạy khi cấu hình lần đầu hoặc nâng cấp từ phiên bản cũ (nếu cần)
+if [ "$action" = "configure" ] || [ "$action" = "triggered" ]; then
+    echo ">> [ACER GUI] Build kernel module for current kernel: $(uname -r)"
+
+    # Đường dẫn đến mã nguồn module đã được cài bởi dh_install
+    MODULE_SRC_DIR="/etc/acer-battery-control-gui"
+    MODULE_NAME="acer-wmi-battery"
+
+    # Kiểm tra sự tồn tại của mã nguồn
+    if [ -d "$MODULE_SRC_DIR" ] && [ -f "$MODULE_SRC_DIR/Makefile" ] && [ -f "$MODULE_SRC_DIR/$MODULE_NAME.c" ]; then
+        # Cần cài linux-headers và build-essential làm Dependencies trong debian/control
+        if dpkg -s "linux-headers-$(uname -r)" >/dev/null 2>&1 && dpkg -s build-essential >/dev/null 2>&1; then
+            echo ">> Building kernel module..."
+            cd "$MODULE_SRC_DIR" || exit 1
+            make clean || echo "Make clean failed, continuing..." # Có thể bỏ qua lỗi clean
+            if make; then
+                echo ">> Build successful. Installing module..."
+                # Cài vào thư mục extra hoặc updates/dkms
+                MODULE_DEST_DIR="/lib/modules/$(uname -r)/extra"
+                mkdir -p "$MODULE_DEST_DIR"
+                install -Dm644 "$MODULE_NAME.ko" "$MODULE_DEST_DIR/$MODULE_NAME.ko"
+
+                # Cập nhật dependencies và thử load module
+                depmod -a || echo "depmod failed"
+                if ! modprobe "$MODULE_NAME"; then
+                     echo "!! [ACER GUI] Failed to load kernel module $MODULE_NAME."
+                     # Có thể không phải lỗi nghiêm trọng nếu module đã được build/load trước đó
+                else
+                     echo ">> [ACER GUI] Kernel module $MODULE_NAME loaded."
+                fi
+            else
+                echo "!! [ACER GUI] Failed to build $MODULE_NAME.ko"
+                echo "!! Ensure linux-headers-$(uname -r) and build-essential are installed."
+            fi
+            cd - > /dev/null # Quay lại thư mục cũ
+        else
+             echo "!! [ACER GUI] Missing build dependencies (linux-headers-$(uname -r) or build-essential)."
+             echo "!! Cannot build kernel module. Please install them and reconfigure the package:"
+             echo "!! sudo apt install linux-headers-$(uname -r) build-essential"
+             echo "!! sudo dpkg-reconfigure acer-battery-control-gui"
+             # Thoát với lỗi để dpkg biết cấu hình chưa hoàn tất (tùy chọn)
+             # exit 1
+        fi
+    else
+        echo "!! [ACER GUI] Kernel module source not found in $MODULE_SRC_DIR. Skipping build."
+    fi
+
+    # Kích hoạt và khởi động service (được xử lý bởi dh_installsystemd)
+    # Không cần các lệnh systemctl enable/start thủ công ở đây nếu dùng --with systemd
+
+    # Restart polkit để áp dụng rule mới
+    echo ">> Restarting Polkit..."
+    if systemctl is-active --quiet polkit.service; then
+        systemctl restart polkit.service || echo "Failed to restart polkit, maybe not needed."
+    else
+        echo "Polkit service not active, skipping restart."
+    fi
+
+fi
+
+# Đoạn mã này được debhelper tự động thêm vào nếu dùng --with systemd
+#DEBHELPER#
+
+exit 0

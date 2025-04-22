@@ -1,28 +1,60 @@
 #!/usr/bin/make -f
 
-# Compat level 13 for debhelper-compat
+# Bật các tùy chọn hardening bảo mật
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+# Sử dụng trình tự debhelper tiêu chuẩn, bật hỗ trợ systemd
+# Thêm --with systemd để dh_installsystemd tự động xử lý file .service
 %:
-    dh $@
+	dh $@ --with systemd
 
-override_dh_auto_install:
-    dh_auto_install
-    # Copy files to appropriate locations
-    mkdir -p $(DESTDIR)/usr/bin
-    cp gui.py $(DESTDIR)/usr/bin/acer-battery-control-gui
-    cp backend.py $(DESTDIR)/usr/bin/acer-battery-backend
-    # Install systemd service
-    mkdir -p $(DESTDIR)/lib/systemd/system
-    cp acer-battery-control-gui.service $(DESTDIR)/lib/systemd/system/
-    # Install udev rules
-    mkdir -p $(DESTDIR)/etc/udev/rules.d
-    cp acer-battery-control.rules $(DESTDIR)/etc/udev/rules.d/
-    # Install desktop entry
-    mkdir -p $(DESTDIR)/usr/share/applications
-    cp acer-battery-health.desktop $(DESTDIR)/usr/share/applications/
-    # Install icons
-    mkdir -p $(DESTDIR)/usr/share/icons/hicolor/256x256/apps
-    cp acer-care-center_256x256.png $(DESTDIR)/usr/share/icons/hicolor/256x256/apps/
-    mkdir -p $(DESTDIR)/usr/share/icons/hicolor/48x48/apps
-    cp acer-care-center_48x48.png $(DESTDIR)/usr/share/icons/hicolor/48x48/apps/
+# Ghi đè bước dh_install để đặt các file vào đúng vị trí tùy chỉnh
+# dh_install chạy sau dh_auto_configure và dh_auto_build
+override_dh_install:
+	# Chạy dh_install mặc định trước (nếu có file nào được cấu hình trong debian/install)
+	# Nó cũng xử lý việc cài đặt tài liệu (README, LICENSE) nếu có dh_installdocs/dh_installlicenses
+	dh_install
+
+	# Cài đặt file thực thi GUI chính vào /usr/bin và cấp quyền thực thi
+	# Sử dụng dh_install thay vì cp và mkdir thủ công
+	dh_install gui.py usr/bin/acer-battery-control-gui --chmod=755
+
+	# Cài đặt file backend vào /etc (thư mục này sẽ được tạo tự động bởi dh_installdirs nếu cần)
+	# Theo PKGBUILD, backend nên ở /etc/acer-battery-control-gui/
+	dh_install backend.py etc/acer-battery-control-gui/
+
+	# File .service sẽ được xử lý tự động bởi dh_installsystemd do có --with systemd
+	# Nó sẽ được cài vào /lib/systemd/system/ theo mặc định.
+	# Bạn không cần dòng cp thủ công nữa.
+	# Nếu bạn *thực sự* muốn nó ở /usr/lib/systemd/system, bạn có thể thêm tham số:
+	# dh_installsystemd -- ODER=-usr
+
+	# Cài đặt quy tắc Polkit (không phải udev như trong file cũ của bạn)
+	# Thư mục /usr/share/polkit-1/rules.d/
+	dh_install acer-battery-control.rules usr/share/polkit-1/rules.d/
+
+	# Cài đặt file .desktop
+	dh_install acer-battery-health.desktop usr/share/applications/
+
+	# Cài đặt icons (với tên đích đúng như trong PKGBUILD)
+	# Thư mục /usr/share/icons/hicolor/.../apps/
+	dh_install acer-care-center_256x256.png usr/share/icons/hicolor/256x256/apps/acer-battery-control.png
+	dh_install acer-care-center_48x48.png usr/share/icons/hicolor/48x48/apps/acer-battery-control.png
+
+	# --- Phần xử lý Kernel Module ---
+	# Cách tiếp cận giống Arch (.install) là đưa mã nguồn vào gói
+	# và build nó trong script postinst. DKMS là cách tốt hơn trên Debian.
+	# Giả sử chúng ta theo cách giống Arch trước:
+	# Cài đặt mã nguồn module kernel và Makefile vào nơi postinst có thể tìm thấy
+	# Ví dụ: vào /etc/acer-battery-control-gui/ như Arch hoặc /usr/src/
+	dh_install acer-wmi-battery.c etc/acer-battery-control-gui/
+	dh_install Makefile etc/acer-battery-control-gui/
+
+# Nếu bạn không dùng --with systemd, bạn cần dòng này:
+# override_dh_installsystemd:
+#	dh_installsystemd
+
+# dh_fixperms chạy cuối cùng để đảm bảo quyền đúng, thường không cần override
+# override_dh_fixperms:
+#	dh_fixperms
+#	# Thêm lệnh chmod đặc biệt nếu cần ở đây
