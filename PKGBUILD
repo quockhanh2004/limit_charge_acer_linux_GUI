@@ -1,14 +1,14 @@
 pkgname=acer-battery-control-gui
-pkgver=1.1.1
+pkgver=1.1.2
 pkgrel=1
 pkgdesc="A simple GUI to control Acer battery health mode."
 arch=("any")
 url="Your project URL"
-license=("MIT")  # Thay đổi theo license của bạn
+license=("MIT")
 depends=("python3" "python-pyqt5")
-makedepends=("python") #  Only needed if you're building anything during the package creation
-provides=("acer-battery-manager") #  Optional: other names this package provides
-conflicts=("acer-battery-manager-other") # Optional: packages that conflict with this one
+makedepends=("python")  # Only needed if you're building anything during the package creation
+provides=("acer-battery-manager")  # Optional: other names this package provides
+conflicts=("acer-battery-manager-other")  # Optional: packages that conflict with this one
 
 source=(
     "gui.py"
@@ -24,18 +24,18 @@ source=(
     "README.md"
 )
 
-
+# Tạo checksum mới nếu cần thiết
 md5sums=('64277873980bb22f74d5c7a9aa1a9f82'
-         '195e4d652f464ea2a7d2df8bd09daa24'
+         '5261863832ddca5be51f9e9f245a3cd0'
          'f96c4057cf13978318760a4a882af1e6'
          '04f9aa5b03321da2fa1937392cfb9020'
-         'fbc8ba053c24c6632f94d9484147d118'
-         '792e8072c180a203ace0c478ce9f1798'
+         'd67cc8f9cd9f6de96465a2a391d8672e'
+         '2afe5e9249a1ee421b0a165deb84260e'
          '377c5f4ef1218dec09967bfea74fa3b2'
          '271fb148077017e87d114f000c9f5ce4'
          '268602bfba61e6ee16de750be4a0469b'
          'b234ee4d69f5fce4486a80fdaf4a4263'
-         '8009a8fc6b9a93f5df053478df2aeb07')
+         '4983ceab2e98c9affb6d2e3768d6ea49')
 
 package() {
   install -Dm755 gui.py "${pkgdir}/usr/bin/acer-battery-control-gui"
@@ -47,11 +47,20 @@ package() {
   install -Dm644 acer-battery-health.desktop "${pkgdir}/usr/share/applications/acer-battery-health.desktop"
   install -Dm644 acer-care-center_256x256.png "${pkgdir}/usr/share/icons/hicolor/256x256/apps/acer-battery-control.png"
   install -Dm644 acer-care-center_48x48.png "${pkgdir}/usr/share/icons/hicolor/48x48/apps/acer-battery-control.png"
-  # Install other files
-  post_install() {
-    ln -s /usr/lib/systemd/system/acer-battery-control-gui.service /etc/systemd/system/
-    systemctl enable acer-battery-control-gui.service
-    systemctl restart acer-battery-control-gui.service
-    systemctl restart polkit
-  }
+}
+
+post_install() {
+  # Cài đặt dịch vụ systemd
+  ln -s /usr/lib/systemd/system/acer-battery-control-gui.service /etc/systemd/system/
+
+  # Chạy lệnh build nếu cần
+  make -C "${pkgdir}/etc/acer-battery-control-gui"
+
+  # Nếu bạn có kernel module .ko, cài đặt và tải module
+  insmod acer-wmi-battery.ko
+
+  # Kích hoạt và khởi động dịch vụ
+  systemctl enable acer-battery-control-gui.service
+  systemctl restart acer-battery-control-gui.service
+  systemctl restart polkit
 }
