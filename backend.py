@@ -12,14 +12,14 @@ def run_command(command):
     try:
         result = subprocess.run("sudo " + command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(result.stdout.decode())
-        return result.stdout.strip()
+        return result.stdout.decode().strip()
     except subprocess.CalledProcessError as e:
         return f"Error: {e.stderr.strip()}"
 
 def main():
     
     make_result = run_command(f"make -C {default_module_path}")
-    make_result_str = make_result.decode("utf-8") # Decode to string
+    make_result_str = make_result  # vì đã là string
 
     if "error" not in make_result_str.lower():  # Check if make was successful
         insmod_command = f"insmod {default_module_path}acer-wmi-battery.ko"  # Only run insmod if make succeeded
