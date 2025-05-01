@@ -1,5 +1,5 @@
 pkgname=acer-battery-control-gui
-pkgver=1.1.2
+pkgver=1.1.3
 pkgrel=1
 pkgdesc="A simple GUI to control Acer battery health mode."
 arch=("any")
@@ -25,8 +25,8 @@ source=(
     "README.md"
 )
 
-md5sums=('64277873980bb22f74d5c7a9aa1a9f82'
-         '71a76746c6febf950f8d5e5334551b9c'
+md5sums=('47faf4a607a8a97e4633254159703223'
+         'ab1a797b8b0e8d45ecff589c8b005c81'
          'f96c4057cf13978318760a4a882af1e6'
          '04f9aa5b03321da2fa1937392cfb9020'
          'd67cc8f9cd9f6de96465a2a391d8672e'

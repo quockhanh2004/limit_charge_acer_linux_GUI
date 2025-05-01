@@ -12,7 +12,7 @@ def run_command(command):
     try:
         result = subprocess.run("sudo " + command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(result.stdout.decode())
-        return result.stdout.decode().strip()
+        return result.stdout.strip()
     except subprocess.CalledProcessError as e:
         return f"Error: {e.stderr.strip()}"
 
@@ -51,7 +51,7 @@ def main():
                 elif command == "calibration_mode_on":
                      response = run_command("echo 1 | sudo tee /sys/bus/wmi/drivers/acer-wmi-battery/calibration_mode")
                 elif command == "calibration_mode_off":
-                     response = run_command("echo 1 | sudo tee /sys/bus/wmi/drivers/acer-wmi-battery/calibration_mode")
+                     response = run_command("echo 0 | sudo tee /sys/bus/wmi/drivers/acer-wmi-battery/calibration_mode")
                 elif command.startswith("insmod"):  # Example: "insmod /path/to/module.ko"
                     response = run_command(f"{command}")  # Run insmod with sudo
                 elif command == "ping":

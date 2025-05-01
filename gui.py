@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import socket
+from threading import Thread
 
 from PyQt5.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit,
                              QVBoxLayout, QHBoxLayout, QPushButton, QGroupBox,
@@ -136,18 +137,20 @@ class BatteryControl(QWidget):
                self.update_toggle_state() # Call after module is loaded
 
     def send_command(self, command):
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        sock_path = "/tmp/acer-battery-control.sock"
-        try:
-            sock.connect(sock_path)
-            sock.sendall(command.encode("utf-8"))
-            response = sock.recv(4096).decode("utf-8") # Receive response from backend
-            sock.close()
-            self.update_toggle_state()
-            return response
-        except Exception as e:
-            print(f"Error communicating with backend: {e}")
-            return "Error"
+        def run():
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock_path = "/tmp/acer-battery-control.sock"
+            try:
+                sock.connect(sock_path)
+                sock.sendall(command.encode("utf-8"))
+                response = sock.recv(4096).decode("utf-8")
+                sock.close()
+                print("Response:", response)
+                self.update_toggle_state()
+            except Exception as e:
+                print(f"Error communicating with backend: {e}")
+
+        Thread(target=run).start()
 
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())  # Save window geometry
