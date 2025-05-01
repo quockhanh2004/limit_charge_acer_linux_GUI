@@ -26,7 +26,7 @@ source=(
 )
 
 md5sums=('47faf4a607a8a97e4633254159703223'
-         'ab1a797b8b0e8d45ecff589c8b005c81'
+         '7b93bdd0b7a86707298570f348ab35bd'
          'f96c4057cf13978318760a4a882af1e6'
          '04f9aa5b03321da2fa1937392cfb9020'
          'd67cc8f9cd9f6de96465a2a391d8672e'
@@ -39,8 +39,10 @@ md5sums=('47faf4a607a8a97e4633254159703223'
 
 package() {
   # 1. Cài app GUI
-  install -Dm755 gui.py "${pkgdir}/usr/bin/acer-battery-control-gui"
-  install -Dm755 backend.py "${pkgdir}/etc/acer-battery-control-gui/backend.py"
+  install -Dm644 gui.py "${pkgdir}/usr/bin/acer-battery-control-gui"
+  install -Dm644 backend.py "${pkgdir}/etc/acer-battery-control-gui/backend.py"
+  install -Dm644 Makefile "${pkgdir}/etc/acer-battery-control-gui/Makefile"
+  install -Dm644 acer-wmi-battery.c "${pkgdir}/etc/acer-battery-control-gui/acer-wmi-battery.c"
   install -Dm644 acer-battery-control.rules "${pkgdir}/usr/share/polkit-1/rules.d/acer-battery-control.rules"
   install -Dm644 acer-battery-control-gui.service "${pkgdir}/usr/lib/systemd/system/acer-battery-control-gui.service"
   install -Dm644 acer-battery-health.desktop "${pkgdir}/usr/share/applications/acer-battery-health.desktop"

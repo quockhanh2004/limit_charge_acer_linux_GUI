@@ -10,7 +10,7 @@ if os.path.exists(sock_path):
 def run_command(command):
     print("run command: %s" % command)
     try:
-        result = subprocess.run("sudo " + command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print(result.stdout.decode())
         return result.stdout.strip()
     except subprocess.CalledProcessError as e:
@@ -19,8 +19,11 @@ def run_command(command):
 def main():
     
     make_result = run_command(f"make -C {default_module_path}")
-    make_result_str = make_result  # vì đã là string
-
+    make_result_str = make_result
+    
+    insmod_command = f"insmod {default_module_path}acer-wmi-battery.ko"
+    insmod_result = run_command(insmod_command)
+    response = f"Make output:\n{make_result}\n\nInsmod output:\n{insmod_result}"
     if "error" not in make_result_str.lower():  # Check if make was successful
         insmod_command = f"insmod {default_module_path}acer-wmi-battery.ko"  # Only run insmod if make succeeded
         insmod_result = run_command(insmod_command)
