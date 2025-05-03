@@ -1,8 +1,7 @@
 [Desktop Entry]
+Name=Acer Battery Health
+Exec=/usr/bin/acer-battery-control-gui
+Icon=acer-battery-control
 Type=Application
-Name=Acer Battery Control
-Comment=Control Acer battery health mode
-Exec=/usr/bin/acer-battery-control-gui  # Đường dẫn thực thi ứng dụng
-Icon=acer-battery-control # Đường dẫn tới file icon
-Categories=Utility;System; # Danh mục ứng dụng
-Terminal=false # Ứng dụng không chạy trong terminal
+Categories=Utility;System;
+Terminal=false

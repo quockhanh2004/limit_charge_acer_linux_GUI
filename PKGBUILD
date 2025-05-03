@@ -1,6 +1,6 @@
 pkgname=acer-battery-control-gui
 pkgver=1.1.3
-pkgrel=1
+pkgrel=2
 pkgdesc="A simple GUI to control Acer battery health mode."
 arch=("any")
 url="https://your.project.url"
@@ -26,12 +26,12 @@ source=(
 )
 
 md5sums=('47faf4a607a8a97e4633254159703223'
-         '7b93bdd0b7a86707298570f348ab35bd'
+         '766f3205c57799da026218e9841b67e4'
          'f96c4057cf13978318760a4a882af1e6'
          '04f9aa5b03321da2fa1937392cfb9020'
          'd67cc8f9cd9f6de96465a2a391d8672e'
          '2afe5e9249a1ee421b0a165deb84260e'
-         '377c5f4ef1218dec09967bfea74fa3b2'
+         '4943efd787c4fce8c1371efedb740503'
          '271fb148077017e87d114f000c9f5ce4'
          '268602bfba61e6ee16de750be4a0469b'
          'b234ee4d69f5fce4486a80fdaf4a4263'
@@ -39,7 +39,7 @@ md5sums=('47faf4a607a8a97e4633254159703223'
 
 package() {
   # 1. Cài app GUI
-  install -Dm644 gui.py "${pkgdir}/usr/bin/acer-battery-control-gui"
+  install -Dm755 gui.py "${pkgdir}/usr/bin/acer-battery-control-gui"
   install -Dm644 backend.py "${pkgdir}/etc/acer-battery-control-gui/backend.py"
   install -Dm644 Makefile "${pkgdir}/etc/acer-battery-control-gui/Makefile"
   install -Dm644 acer-wmi-battery.c "${pkgdir}/etc/acer-battery-control-gui/acer-wmi-battery.c"
